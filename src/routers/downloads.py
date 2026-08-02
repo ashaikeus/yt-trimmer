@@ -1,13 +1,9 @@
-# POST /downloads - send a downloading request
-# Body params:
-# * youtube_link
-# - start_trim
-# - end_trim
+from uuid import UUID
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException, status
 
 import services
-from schemas.downloads import DownloadCreate, DownloadCreated
+from schemas.downloads import DownloadCreate, DownloadCreated, DownloadDetail
 
 router = APIRouter()
 
@@ -19,4 +15,14 @@ async def post_downloads(download: DownloadCreate) -> DownloadCreated:
         trim_start=download.trim_start,
         trim_end=download.trim_end,
     )
+    return result
+
+
+@router.get("/downloads/{request_id}")
+async def get_download(request_id: UUID) -> DownloadDetail:
+    result = await services.get_download_service(request_id=request_id)
+    if result is None:  # todo: add exception handler
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Download not found"
+        )
     return result
