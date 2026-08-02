@@ -1,1 +1,1 @@
-from .logging import YDL_LOGGING_OPTIONS, logger
+from .logging_config import YDL_LOGGING_OPTIONS, logger
