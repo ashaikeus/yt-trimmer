@@ -1,39 +1,48 @@
 import asyncio
-from datetime import datetime, timezone
-from uuid import UUID, uuid4
 
 from yt_dlp import YoutubeDL
 from yt_dlp.utils import DownloadError
 
-from configs import YDL_LOGGING_OPTIONS, logger
+from configs import YDL_LOGGING_OPTIONS, logger, redis_client
 from enums import DownloadStatus
+from schemas import DownloadDetail
 
 
 async def post_downloads_service(
     youtube_link: str,  # todo: validation
     trim_start: int | None,
     trim_end: int | None,
-) -> dict:
-    request_id = uuid4()
-    asyncio.create_task(
-        asyncio.to_thread(background_download, str(youtube_link), request_id)
+) -> DownloadDetail:
+    download = DownloadDetail(
+        youtube_link=youtube_link,
+        trim_start=trim_start,
+        trim_end=trim_end,
     )
-    # todo: For now I mock the response -- we'll focus on queueing logic later
-    logger.info(f"[{request_id}]: task scheduled")
-    status = DownloadStatus.QUEUED
-    return {
-        "request_id": request_id,
-        "created_at": datetime.now(timezone.utc),
-        "status": status,
-    }
+
+    redis_client.hset(
+        f"download:{download.request_id}",
+        mapping=download.model_dump(mode="json", exclude_none=True),
+    )
+    logger.debug(f"[{download.request_id}]: task saved to Redis")
+
+    asyncio.create_task(
+        asyncio.to_thread(background_download, download)
+    )  # todo: redis queue
+    logger.info(f"[{download.request_id}]: task scheduled")
+
+    return download
 
 
-def background_download(youtube_link: str, request_id: UUID) -> None:
+def background_download(download: DownloadDetail) -> None:
     try:
         with YoutubeDL(YDL_LOGGING_OPTIONS) as ydl:
-            ydl.download(youtube_link)
-        status = DownloadStatus.COMPLETED  # todo: persist status
-        logger.info(f"[{request_id}]: file downloaded")
+            ydl.download(str(download.youtube_link))
+        redis_client.hset(
+            f"download:{download.request_id}", "status", DownloadStatus.COMPLETED
+        )  # todo: create repository
+        logger.info(f"[{download.request_id}]: file downloaded")
     except DownloadError as exc:
-        status = DownloadStatus.FAILED
-        logger.exception(f"[{request_id}]: download failed - {exc}")
+        redis_client.hset(
+            f"download:{download.request_id}", "status", DownloadStatus.FAILED
+        )
+        logger.exception(f"[{download.request_id}]: download failed - {exc}")
