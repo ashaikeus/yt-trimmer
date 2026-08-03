@@ -14,6 +14,8 @@ services:
       - redis
     environment:
       PYTHONPATH: /app/src
+    volumes:
+      - ./downloads:/app/downloads
 
   worker:
     build: .
@@ -24,3 +26,5 @@ services:
       - redis
     environment:
       PYTHONPATH: /app/src
+    volumes:
+      - ./downloads:/app/downloads
