@@ -6,6 +6,7 @@ API for downloading and processing YouTube videos.
 - Python
 - FastAPI
 - Redis
+- Redis Queue (RQ)
 - Docker
 - uv
 

@@ -1,11 +1,6 @@
-import asyncio
-
-from yt_dlp import YoutubeDL
-from yt_dlp.utils import DownloadError
-
-from configs import YDL_LOGGING_OPTIONS, logger, redis_client
-from enums import DownloadStatus
+from configs import logger, queue, redis_client
 from schemas import DownloadDetail
+from tasks import background_download
 
 
 async def post_downloads_service(
@@ -25,24 +20,7 @@ async def post_downloads_service(
     )
     logger.debug(f"[{download.request_id}]: task saved to Redis")
 
-    asyncio.create_task(
-        asyncio.to_thread(background_download, download)
-    )  # todo: redis queue
+    queue.enqueue(background_download, download.model_dump(mode="json"))
     logger.info(f"[{download.request_id}]: task scheduled")
 
     return download
-
-
-def background_download(download: DownloadDetail) -> None:
-    try:
-        with YoutubeDL(YDL_LOGGING_OPTIONS) as ydl:
-            ydl.download(str(download.youtube_link))
-        redis_client.hset(
-            f"download:{download.request_id}", "status", DownloadStatus.COMPLETED.value
-        )  # todo: create repository
-        logger.info(f"[{download.request_id}]: file downloaded")
-    except DownloadError as exc:
-        redis_client.hset(
-            f"download:{download.request_id}", "status", DownloadStatus.FAILED.value
-        )
-        logger.exception(f"[{download.request_id}]: download failed - {exc}")

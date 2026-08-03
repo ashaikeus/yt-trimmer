@@ -12,3 +12,15 @@ services:
       - ${API_PORT}:8000
     depends_on:
       - redis
+    environment:
+      PYTHONPATH: /app/src
+
+  worker:
+    build: .
+    env_file:
+      - .env
+    command: uv run rq worker
+    depends_on:
+      - redis
+    environment:
+      PYTHONPATH: /app/src
