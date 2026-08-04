@@ -1,6 +1,6 @@
 FROM python:3.14-slim
 
-WORKDIR /app
+WORKDIR /yt-trimmer
 
 COPY pyproject.toml uv.lock ./
 

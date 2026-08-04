@@ -13,9 +13,9 @@ services:
     depends_on:
       - redis
     environment:
-      PYTHONPATH: /app/src
+      PYTHONPATH: /yt-trimmer/src
     volumes:
-      - ./downloads:/app/downloads
+      - ./downloads:/yt-trimmer/downloads
 
   worker:
     build: .
@@ -25,6 +25,6 @@ services:
     depends_on:
       - redis
     environment:
-      PYTHONPATH: /app/src
+      PYTHONPATH: /yt-trimmer/src
     volumes:
-      - ./downloads:/app/downloads
+      - ./downloads:/yt-trimmer/downloads
