@@ -1,16 +1,32 @@
 from yt_dlp import YoutubeDL
 from yt_dlp.utils import DownloadError
 
-from configs import YDL_SETTINGS, logger, redis_client
+from configs import YDL_SETTINGS, logger, redis_client, settings
 from enums import DownloadStatus
 from schemas import DownloadDetail
+from utils import upload_file_azure
 
 
 def background_download(download_data: dict) -> None:
     download = DownloadDetail(**download_data)
     try:
-        with YoutubeDL(YDL_SETTINGS) as ydl:
-            ydl.download(str(download.youtube_link))
+        with YoutubeDL(YDL_SETTINGS) as ydl:  # todo: isolate download
+            file_info = ydl.extract_info(
+                str(download.youtube_link),
+                download=True,
+            )
+            local_path = ydl.prepare_filename(file_info)
+            redis_client.hset(
+                f"download:{download.request_id}", "file_link", local_path
+            )  # todo: decompose it into a redis_helpers file too
+            if settings.blob_enabled:
+                blob_link = upload_file_azure(
+                    local_path=local_path, request_id=str(download.request_id)
+                )
+                redis_client.hset(
+                    f"download:{download.request_id}", "file_link", blob_link
+                )
+
         redis_client.hset(
             f"download:{download.request_id}", "status", DownloadStatus.COMPLETED.value
         )  # todo: create repository

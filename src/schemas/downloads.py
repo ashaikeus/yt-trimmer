@@ -20,4 +20,6 @@ class DownloadCreated(BaseModel):
 
 class DownloadDetail(DownloadCreate, DownloadCreated):
     completed_at: datetime | None = None
-    file_link: HttpUrl | None = None
+    file_link: str | None = (
+        None  # todo: maybe makes sense to split into file_local_path and file_url, one of which will be none
+    )
