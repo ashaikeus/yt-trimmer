@@ -8,8 +8,8 @@ from enums import DownloadStatus
 
 class DownloadCreate(BaseModel):
     youtube_link: HttpUrl
-    trim_start: int | None
-    trim_end: int | None
+    trim_start: int | None = None
+    trim_end: int | None = None
 
 
 class DownloadCreated(BaseModel):
