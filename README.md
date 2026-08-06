@@ -17,6 +17,7 @@ API for downloading and processing YouTube videos.
 - Redis Queue (RQ)
 - Docker
 - Azure Blob Storage
+- ffmpeg
 - uv
 
 ## Installation
