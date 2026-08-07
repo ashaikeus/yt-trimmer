@@ -19,5 +19,11 @@ class Settings(BaseSettings):
             and self.azure_storage_container_name is not None
         )
 
+    @property
+    def resolved_download_dir(self) -> "Path":
+        from pathlib import Path
+
+        return Path(self.download_dir).resolve()
+
 
 settings = Settings()

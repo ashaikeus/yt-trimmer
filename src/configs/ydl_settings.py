@@ -1,6 +1,5 @@
-from pathlib import Path
-
-from configs import logger, settings
+from .logging_config import logger
+from .settings import settings
 
 
 class YDLLogger:
@@ -14,10 +13,8 @@ class YDLLogger:
         logger.debug(msg)
 
 
-resolved_download_dir = Path(settings.download_dir).resolve()
-
 YDL_SETTINGS = {
     "logger": YDLLogger(),
-    "outtmpl": f"/{resolved_download_dir}/%(id)s.%(ext)s",
+    "outtmpl": f"/{settings.resolved_download_dir}/%(id)s.%(ext)s",
     "format": "mp4",
 }
