@@ -1,6 +1,7 @@
 from configs import logger, queue, redis_client
 from schemas import DownloadDetail
-from tasks import background_download
+
+from .background_download import background_download
 
 
 async def post_downloads_service(

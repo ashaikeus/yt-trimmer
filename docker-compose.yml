@@ -28,3 +28,13 @@ services:
       PYTHONPATH: /yt-trimmer/src
     volumes:
       - ./downloads:/yt-trimmer/downloads
+
+  scheduler:
+    build: .
+    env_file:
+      - .env
+    depends_on:
+      - redis
+    environment:
+      PYTHONPATH: /yt-trimmer/src
+    command: sh -c "uv run python -m scheduler && uv run rqscheduler --host ${REDIS_HOST}"

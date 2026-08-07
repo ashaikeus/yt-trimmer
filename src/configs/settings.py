@@ -9,6 +9,8 @@ class Settings(BaseSettings):
         None  # todo: split by domain (settings.azure.storage_connection_string...)
     )
     azure_storage_container_name: str | None = None
+    file_ttl: int | None = 30 * 60
+    cleanup_interval: int | None = 30 * 60
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
